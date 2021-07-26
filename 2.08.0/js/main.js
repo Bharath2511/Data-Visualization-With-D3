@@ -10,10 +10,16 @@ const svg = d3.select('#chart-area')
 
 d3.json('data/buildings.json')
 .then(data => {
-    let gap = 10;
     data.forEach(d => {
         d.height = Number(d.height)
     })
+const xNames = data.map(d => d.name)
+const x = d3.scaleBand()
+.domain(xNames)
+.range([0,500])
+.paddingInner(0.2)
+.paddingOuter(0.2)
+
 const y = d3.scaleLinear()
 .domain([0,887])
 .range([0,500])
@@ -23,10 +29,10 @@ const bars = svg
 .data(data)
 
 bars.enter().append('rect')
-.attr('x',(d,i)=> (i*60))
+.attr('x',(d)=> x(d.name))
 .attr('y',0)
-.attr('width',40)
-.attr('height',(d,i)=>y(d.height))
+.attr('width',x.bandwidth)
+.attr('height',d=>y(d.height))
 .attr('fill','grey')
 })
 
