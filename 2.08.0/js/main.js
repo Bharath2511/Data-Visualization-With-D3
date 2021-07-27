@@ -21,7 +21,8 @@ const x = d3.scaleBand()
 .paddingOuter(0.2)
 
 const y = d3.scaleLinear()
-.domain([0,887])
+.domain([0,d3.max(data,d => d.height)])
+// .domain(d3.extent(data,d=>d.height))
 .range([0,500])
 
 const bars = svg
