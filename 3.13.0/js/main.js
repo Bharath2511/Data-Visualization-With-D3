@@ -30,33 +30,13 @@ const getData = async() => {
 
 const data = getData();
 data.then(data=>{
-    // adding x and y axis with bands
-    const x = d3.scaleBand()
-        .domain(data.map(d => d.month))
-        .range([0,WIDTH])
-        .paddingInner(0.2)
-        .paddingOuter(0.2)
-    
-    const y = d3.scaleLinear()
-    .domain([0,d3.max(data,d => d.revenue)])
-    .range([HEIGHT,0])
 
-    // adding scales
-    const xAxisCall = d3.axisBottom(x)
+    const xAxisGroup = g.append('g')
+        .attr('class','x axis')
+        .attr('transform',`translate(0,${HEIGHT})`)
 
-    g.append('g')
-    .attr('transform',`translate(0,${HEIGHT})`)
-    .attr('class','x axis')
-    .call(xAxisCall)
-    .selectAll('text')
-    .attr('text-anchor','middle')
-
-    const yAxisCall = d3.axisLeft(y)
-    .tickFormat(d => '$'+d)
-
-    g.append('g')
-    .attr('class','y axis')
-    .call(yAxisCall)
+    const yAxisGroup = g.append('g')
+        .attr('class','y axis')
 
     // adding labels
     g.append('text')
@@ -74,20 +54,68 @@ data.then(data=>{
     .attr('text-anchor','middle')
     .text('Revenue')
 
+
+    d3.interval(()=>{
+        update(data)
+    },1000)
+
+    const update = (data) => {
+        const x = d3.scaleBand()
+        .domain(data.map(d => d.month))
+        .range([0,WIDTH])
+        .paddingInner(0.2)
+        .paddingOuter(0.2)
+    
+    const y = d3.scaleLinear()
+    .domain([0,d3.max(data,d => d.revenue)])
+    .range([HEIGHT,0])
+
+    // adding scales
+    const xAxisCall = d3.axisBottom(x)
+
+    xAxisGroup
+    .call(xAxisCall)
+    .selectAll('text')
+    .attr('text-anchor','middle')
+
+    const yAxisCall = d3.axisLeft(y)
+    .tickFormat(d => '$'+d)
+
+    yAxisGroup
+    .call(yAxisCall)
+
+    //JOIN new data with old elements
     const rects = g.selectAll('rect').data(data);
 
+    //exit old elements which are not present in new data
+    rects.exit().remove()
+
+    //update old elements present in new data
+    rects
+    .attr('x',(d)=>x(d.month))
+    .attr('y',d=>y(d.revenue))
+    .attr('width',x.bandwidth)
+    .attr('height',d => HEIGHT - y(d.revenue))
+
+    //enter new elements present in new data
     rects.enter().append('rect')
     .attr('x',(d)=>x(d.month))
     .attr('y',d=>y(d.revenue))
     .attr('width',x.bandwidth)
     .attr('height',d => HEIGHT - y(d.revenue))
     .attr('fill',d => d.revenue <= 20000 ? 'grey' : 'orangered')
+    // .attr('fill','grey')
 
-    rects.enter().append('text')
-    .attr('x',d => x(d.month) + 28)
-    .attr('y',d => y(d.revenue) - 5)
-    .attr('fill','steelblue')
-    .attr('font-size','14px')
-    .attr('text-anchor','middle')
-    .text(d => d.revenue)
+    // rects.enter().append('text')
+    // .attr('x',d => x(d.month)+8)
+    // .attr('y',d => y(d.revenue)-5)
+    // .attr('fill','steelblue')
+    // .attr('font-size','14px')
+    // .attr('text-anchor','start')
+    // .text(d => d.revenue)
+
+    }
+    update(data)
+
 })
+
