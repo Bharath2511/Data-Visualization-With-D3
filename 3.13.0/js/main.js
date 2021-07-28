@@ -105,66 +105,24 @@ data.then(data=>{
 
 
     //JOIN new data with old elements
-    const rects = g.selectAll('rect').data(data,d => d.month);
+    const circles = g.selectAll('circle').data(data,d => d.month);
 
     //exit old elements which are not present in new data
-    rects.exit()
+    circles.exit()
     .attr('fill','red')
     .transition(t)
-    .attr('height',0)
-    .attr('y',y(0))
+    .attr('cy',y(0))
     .remove()
 
-    //update old elements present in new data
-    // rects.transition(t)
-    // .attr('x',(d)=>x(d.month))
-    // .attr('y',d=>y(d[value]))
-    // .attr('width',x.bandwidth)
-    // .attr('height',d => HEIGHT - y(d[value]))
-
-    // //enter new elements present in new data
-    // rects.enter().append('rect')
-    // .attr('x',(d)=>x(d.month))
-    // .attr('width',x.bandwidth)
-    // .attr('fill','grey')
-    // .attr('y',y(0)).
-    // attr('height',0)
-    // .transition(t)
-    // .attr('y',d=>y(d[value]))
-    // .attr('height',d => HEIGHT - y(d[value]))
-
-    // .attr('fill','grey')
-
-    rects.enter().append('rect')
-    .attr('y',y(0))
-    .attr('height',0)
+    circles.enter().append('circle')
+    .attr('cy',y(0))
     .attr('fill','grey')
-    .merge(rects)
+    .attr('r',10)
+    .merge(circles)
     .transition(t)
-    .attr('x',(d)=>x(d.month))
-    .attr('y',d=>y(d[value]))
-    .attr('width',x.bandwidth)
-    .attr('height',d => HEIGHT - y(d[value]))
+    .attr('cx',(d)=>x(d.month) + (x.bandwidth()/2))
+    .attr('cy',d=>y(d[value]))
     
-    const texts = g.selectAll('.text').data(data,d => d.month)
-    texts.exit()
-    .attr('fill','red')
-    // .transition(t)
-    .remove()
-
-
-    texts.enter().append('text')
-    .attr('class','text')
-    .attr('fill','steelblue')
-    .attr('font-size','14px')
-    .attr('text-anchor','start')
-    .attr('x',d => x(d.month))
-    .attr('y',y(0))
-    .merge(texts)
-    .transition(t)
-    .attr('x',d => x(d.month)+8)
-    .attr('y',d => y(d[value])-5)
-    .text(d => d[value])
     }
     update(data)
 
