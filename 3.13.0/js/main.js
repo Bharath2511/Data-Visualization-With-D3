@@ -7,7 +7,7 @@
 const MARGIN = {
     LEFT:100,
     RIGHT:10,
-    TOP:10,
+    TOP:25,
     BOTTOM: 100
 }
 
@@ -81,5 +81,13 @@ data.then(data=>{
     .attr('y',d=>y(d.revenue))
     .attr('width',x.bandwidth)
     .attr('height',d => HEIGHT - y(d.revenue))
-    .attr('fill',"grey")
+    .attr('fill',d => d.revenue <= 20000 ? 'grey' : 'orangered')
+
+    rects.enter().append('text')
+    .attr('x',d => x(d.month) + 28)
+    .attr('y',d => y(d.revenue) - 5)
+    .attr('fill','steelblue')
+    .attr('font-size','14px')
+    .attr('text-anchor','middle')
+    .text(d => d.revenue)
 })
