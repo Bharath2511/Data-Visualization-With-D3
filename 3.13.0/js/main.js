@@ -56,14 +56,16 @@ data.then(data=>{
 
 
     d3.interval(()=>{
-        update(data)
         flag = !flag;
+        const newData = flag ? data : data.slice(1)
+        update(newData)
     },1000)
 
     const update = (data) => {
 
         const value = flag ? 'profit' : 'revenue'
-
+        const t = d3.transition().duration(750)
+        const labelT = d3.transition().duration(400)
         const x = d3.scaleBand()
         .domain(data.map(d => d.month))
         .range([0,WIDTH])
@@ -78,54 +80,91 @@ data.then(data=>{
     const xAxisCall = d3.axisBottom(x)
 
     xAxisGroup
+    .transition(t)
     .call(xAxisCall)
     .selectAll('text')
+    .attr('transform','rotate(-40)')
+    .attr('y','15')
+    .attr('x','-5')
     .attr('text-anchor','middle')
 
     const yAxisCall = d3.axisLeft(y)
     .tickFormat(d => '$'+d)
 
-    yAxisGroup
+    yAxisGroup.transition(t)
     .call(yAxisCall)
 
     yAxisLabel
-    .attr('transform','rotate(-90)')
     .attr('x',-(HEIGHT/2))
     .attr('y',-60)
     .attr('text-anchor','middle')
     .text(value)
+    .attr('transform','rotate(0)')
+    .transition(labelT)
+    .attr('transform','rotate(-90)')
 
 
     //JOIN new data with old elements
-    const rects = g.selectAll('rect').data(data);
+    const rects = g.selectAll('rect').data(data,d => d.month);
 
     //exit old elements which are not present in new data
-    rects.exit().remove()
+    rects.exit()
+    .attr('fill','red')
+    .transition(t)
+    .attr('height',0)
+    .attr('y',y(0))
+    .remove()
 
     //update old elements present in new data
-    rects
-    .attr('x',(d)=>x(d.month))
-    .attr('y',d=>y(d[value]))
-    .attr('width',x.bandwidth)
-    .attr('height',d => HEIGHT - y(d[value]))
+    // rects.transition(t)
+    // .attr('x',(d)=>x(d.month))
+    // .attr('y',d=>y(d[value]))
+    // .attr('width',x.bandwidth)
+    // .attr('height',d => HEIGHT - y(d[value]))
 
-    //enter new elements present in new data
-    rects.enter().append('rect')
-    .attr('x',(d)=>x(d.month))
-    .attr('y',d=>y(d[value]))
-    .attr('width',x.bandwidth)
-    .attr('height',d => HEIGHT - y(d[value]))
-    .attr('fill',d => d[value] <= 20000 ? 'grey' : 'orangered')
+    // //enter new elements present in new data
+    // rects.enter().append('rect')
+    // .attr('x',(d)=>x(d.month))
+    // .attr('width',x.bandwidth)
+    // .attr('fill','grey')
+    // .attr('y',y(0)).
+    // attr('height',0)
+    // .transition(t)
+    // .attr('y',d=>y(d[value]))
+    // .attr('height',d => HEIGHT - y(d[value]))
+
     // .attr('fill','grey')
 
-    // rects.enter().append('text')
-    // .attr('x',d => x(d.month)+8)
-    // .attr('y',d => y(d.revenue)-5)
-    // .attr('fill','steelblue')
-    // .attr('font-size','14px')
-    // .attr('text-anchor','start')
-    // .text(d => d.revenue)
+    rects.enter().append('rect')
+    .attr('y',y(0))
+    .attr('height',0)
+    .attr('fill','grey')
+    .merge(rects)
+    .transition(t)
+    .attr('x',(d)=>x(d.month))
+    .attr('y',d=>y(d[value]))
+    .attr('width',x.bandwidth)
+    .attr('height',d => HEIGHT - y(d[value]))
+    
+    const texts = g.selectAll('.text').data(data,d => d.month)
+    texts.exit()
+    .attr('fill','red')
+    // .transition(t)
+    .remove()
 
+
+    texts.enter().append('text')
+    .attr('class','text')
+    .attr('fill','steelblue')
+    .attr('font-size','14px')
+    .attr('text-anchor','start')
+    .attr('x',d => x(d.month))
+    .attr('y',y(0))
+    .merge(texts)
+    .transition(t)
+    .attr('x',d => x(d.month)+8)
+    .attr('y',d => y(d[value])-5)
+    .text(d => d[value])
     }
     update(data)
 
