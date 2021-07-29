@@ -20,7 +20,7 @@ const g = svg.append('g')
 let time = 0;
 let interval;
 let currentContinent = 'all';
-let filteredCountries;
+let formattedCountries;
 
 const tip = d3.tip()
 .attr('class','d3-tip')
@@ -123,16 +123,8 @@ const year = g.append('text')
 
 d3.json('data/data.json').then(data => {
 
-	const selectEl = document.getElementById('continent-select');
-	selectEl.addEventListener('change',(e)=>{
-		const selectedContinent = e.target.value;
-		currentContinent = selectedContinent
-		getFilteredData(currentContinent)
-	})
-	getFilteredData(currentContinent)
-	function getFilteredData (currentContinent) {
 		const formattedData = data.map(d => d.countries)
-		const formattedCountries = formattedData.map(fd => {
+		formattedCountries = formattedData.map(fd => {
 			const countries = fd.filter(d => {
 				if(d.income === null || d.life_exp === null) {
 					return false
@@ -143,24 +135,18 @@ d3.json('data/data.json').then(data => {
 					country.income = Number(country.income);
 					country.life_exp = Number(country.life_exp);
 					return country
-				
 			})
+		})
+		const selectEl = document.getElementById('continent-select');
+		selectEl.addEventListener('change',(e)=>{
+			update(formattedCountries[time])
 		})
 	
-		filteredCountries = formattedCountries.map(year=>{
-			return year.filter(country=>{
-				if(currentContinent === 'all') {
-					return true
-				}
-				return country.continent === currentContinent
-			})
-		})
-		update(filteredCountries[0])
-	}
+	
 	
 	function step() {
 		time = time < 214 ? time+1 : 0
-		update(filteredCountries[time])
+		update(formattedCountries[time])
 	}
 	let isPlayBtn = true;
 	const playBtnEl = document.getElementById("play-button");
@@ -182,15 +168,24 @@ d3.json('data/data.json').then(data => {
 		clearInterval(interval);
 		playBtnEl.textContent = 'Play'
 		isPlayBtn = true;
-		update(filteredCountries[0])
+		update(formattedCountries[0])
 	})
 
-	update(filteredCountries[0])
+	update(formattedCountries[0])
 
 	function update(data)  {
+		const filteredCountries = data.filter(country => {
+			if(selectEl.value === 'all') {
+				return true
+			}
+			else {
+				return country.continent === selectEl.value;
+			}
+		})
+		console.log(filteredCountries)
 		const t = d3.transition().duration(200);
 
-		const circles = g.selectAll('circle').data(data,d=>d.country)
+		const circles = g.selectAll('circle').data(filteredCountries,d=>d.country)
 
 		circles.exit().remove()
 
