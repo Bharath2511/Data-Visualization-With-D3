@@ -141,6 +141,15 @@ d3.json('data/data.json').then(data => {
 		selectEl.addEventListener('change',(e)=>{
 			update(formattedCountries[time])
 		})
+
+		const rangeEl = document.getElementById('customRange2');
+		rangeEl.addEventListener('change',(e)=>{
+			time = e.target.value - 1800
+			update(formattedCountries[time])
+		}) 
+		rangeEl.addEventListener('slidestart',(e)=>{
+			console.log(e.target.value)
+		})
 	
 	
 	
@@ -174,6 +183,7 @@ d3.json('data/data.json').then(data => {
 	update(formattedCountries[0])
 
 	function update(data)  {
+		rangeEl.value = String(1800 + time)
 		const filteredCountries = data.filter(country => {
 			if(selectEl.value === 'all') {
 				return true
@@ -182,7 +192,6 @@ d3.json('data/data.json').then(data => {
 				return country.continent === selectEl.value;
 			}
 		})
-		console.log(filteredCountries)
 		const t = d3.transition().duration(200);
 
 		const circles = g.selectAll('circle').data(filteredCountries,d=>d.country)

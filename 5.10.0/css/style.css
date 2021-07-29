@@ -33,3 +33,7 @@
 	float:right;
 	margin-top:5px;
 }
+
+.range-input {
+	width: 200px;
+}
