@@ -18,6 +18,9 @@ const g = svg.append('g')
 .attr('transform',`translate(${MARGIN.LEFT},${MARGIN.TOP})`)
 
 let time = 0;
+let interval;
+let currentContinent = 'all';
+let filteredCountries;
 
 const tip = d3.tip()
 .attr('class','d3-tip')
@@ -46,7 +49,7 @@ const area = d3.scaleLinear()
 
 const continentColor = d3.scaleOrdinal(d3.schemePastel1)
 
-const lt = d3.transition().duration(500);
+const lt = d3.transition().duration(200);
 
 
 const xAxisCall = d3.axisBottom(x)
@@ -119,28 +122,73 @@ const year = g.append('text')
 .text('1800')
 
 d3.json('data/data.json').then(data => {
-	const formattedData = data.map(d => d.countries)
-	const filteredCountries = formattedData.map(fd => {
-		const countries = fd.filter(d => {
-			if(d.income === null || d.life_exp === null) {
-				return false
-			}
-			return true
-		})
-		return countries.map(country=> {
-			country.income = Number(country.income);
-			country.life_exp = Number(country.life_exp);
-			return country
-		})
+
+	const selectEl = document.getElementById('continent-select');
+	selectEl.addEventListener('change',(e)=>{
+		const selectedContinent = e.target.value;
+		currentContinent = selectedContinent
+		getFilteredData(currentContinent)
 	})
-	d3.interval(()=>{
+	getFilteredData(currentContinent)
+	function getFilteredData (currentContinent) {
+		const formattedData = data.map(d => d.countries)
+		const formattedCountries = formattedData.map(fd => {
+			const countries = fd.filter(d => {
+				if(d.income === null || d.life_exp === null) {
+					return false
+				}
+				return true
+			})
+			return countries.map(country=> {
+					country.income = Number(country.income);
+					country.life_exp = Number(country.life_exp);
+					return country
+				
+			})
+		})
+	
+		filteredCountries = formattedCountries.map(year=>{
+			return year.filter(country=>{
+				if(currentContinent === 'all') {
+					return true
+				}
+				return country.continent === currentContinent
+			})
+		})
+		update(filteredCountries[0])
+	}
+	
+	function step() {
 		time = time < 214 ? time+1 : 0
 		update(filteredCountries[time])
-	},500)
+	}
+	let isPlayBtn = true;
+	const playBtnEl = document.getElementById("play-button");
+	playBtnEl.addEventListener('click',(e)=>{
+		if(isPlayBtn) {
+			interval = setInterval(step,500)
+			e.target.textContent = 'Pause'
+		}
+		else {
+			clearInterval(interval)
+			e.target.textContent = 'Play'
+		}	
+		isPlayBtn = !isPlayBtn;
+		})
+
+	const resetBtnEl = document.getElementById('reset-button');
+	resetBtnEl.addEventListener('click',()=>{
+		time = 0;
+		clearInterval(interval);
+		playBtnEl.textContent = 'Play'
+		isPlayBtn = true;
+		update(filteredCountries[0])
+	})
+
 	update(filteredCountries[0])
 
 	function update(data)  {
-		const t = d3.transition().duration(700);
+		const t = d3.transition().duration(200);
 
 		const circles = g.selectAll('circle').data(data,d=>d.country)
 
